@@ -1,0 +1,7 @@
+﻿################################################################################
+# Este arquivo .gitignore foi criado automaticamente pelo Microsoft(R) Visual Studio.
+################################################################################
+
+/WebApp.Identity/bin/Debug/netcoreapp2.2
+/.vs/Samples/v16/Server/sqlite3
+/WebApp.Identity/obj
