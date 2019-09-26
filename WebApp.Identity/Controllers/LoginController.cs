@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using NToastNotify;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,14 +16,17 @@ namespace WebApp.Identity.Controllers
     {
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
+        private readonly IToastNotification _toastNotification;
         private readonly IUserClaimsPrincipalFactory<User> _userClaimsPrincipalFactory;
 
         public LoginController(UserManager<User> userManager,
                                SignInManager<User> signInManager,
+                               IToastNotification toastNotification,
                                IUserClaimsPrincipalFactory<User> userClaimsPrincipalFactory)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _toastNotification = toastNotification;
             _userClaimsPrincipalFactory = userClaimsPrincipalFactory;
         }
 
@@ -31,7 +35,7 @@ namespace WebApp.Identity.Controllers
             return View();
         }
 
-        public async Task<IActionResult> Authentication()
+        public IActionResult Authentication()
         {
             return View();
         }
@@ -39,63 +43,96 @@ namespace WebApp.Identity.Controllers
         [HttpPost]
         public async Task<IActionResult> Authentication(LoginModel model)
         {
-            if (ModelState.IsValid)
+            if (string.IsNullOrWhiteSpace(model?.Email) || string.IsNullOrWhiteSpace(model?.Password))
             {
-                var user = await _userManager.FindByNameAsync(model.UserName);
+                _toastNotification.AddAlertToastMessage("Para autenticar, informe o seu e-mail e a sua senha");
+                return View();
+            }
+            else
+            {
+                var user = await _userManager.FindByEmailAsync(model.Email);
 
-                if (user != null && !await _userManager.IsLockedOutAsync(user))
+                if(user == null)
                 {
-                    if (await _userManager.CheckPasswordAsync(user, model.Password))
+                    ModelState.AddModelError("", "Usuário não encontrado");
+                    return View();
+                }else
+                {
+                    if(await _userManager.CheckPasswordAsync(user, model.Password))
                     {
-                        if (!await _userManager.IsEmailConfirmedAsync(user))
-                        {
-                            ModelState.AddModelError("", "Email não confirmado. Por favor, faça a confirmação antes de continuar");
-                            return View();
-                        }
-
-                        await _userManager.ResetAccessFailedCountAsync(user);
-
-                        if (await _userManager.GetTwoFactorEnabledAsync(user))
-                        {
-                            var validator = await _userManager.GetValidTwoFactorProvidersAsync(user);
-
-                            if (validator.Contains("Email"))
-                            {
-                                var token = await _userManager.GenerateTwoFactorTokenAsync(user, "Email");
-                                System.IO.File.WriteAllText("email2cv.txt", token);
-
-                                await HttpContext.SignInAsync(IdentityConstants.TwoFactorUserIdScheme, Store2FA(user.Id, "Email"));
-
-                                return RedirectToAction("TwoFactor");
-                            }
-                        }
-
                         var principal = await _userClaimsPrincipalFactory.CreateAsync(user);
 
-                        await HttpContext.SignInAsync(IdentityConstants.TwoFactorUserIdScheme, principal);
-                        //var signInResult = await _signInManager.PasswordSignInAsync(model.UserName, model.Password, false, false);
+                        await HttpContext.SignInAsync(IdentityConstants.ApplicationScheme, principal);
 
-                        //if (signInResult.Succeeded)
-                        //{
+                        //return RedirectToAction("About");
+
+                        _toastNotification.AddSuccessToastMessage($"Seja bem-vindo, {user.UserName}");
                         return RedirectToAction("Index", "Home");
-                        //}
                     }
-
-                    await _userManager.AccessFailedAsync(user);
-
-                    if (await _userManager.IsLockedOutAsync(user))
+                    else
                     {
-                        // Email deve ser enviado sugerindo a troca de senha
+                        _toastNotification.AddAlertToastMessage("Usuário ou senha inválido");
                     }
-                }
 
-                ModelState.AddModelError("", "Usuário ou Senha Inválida");
+                }
             }
 
             return View();
+
+            //if (user != null && !await _userManager.IsLockedOutAsync(user))
+            //{
+            //    if (await _userManager.CheckPasswordAsync(user, model.Password))
+            //    {
+            //        if (!await _userManager.IsEmailConfirmedAsync(user))
+            //        {
+            //            ModelState.AddModelError("", "Email não confirmado. Por favor, faça a confirmação antes de continuar");
+            //            return View();
+            //        }
+
+            //        await _userManager.ResetAccessFailedCountAsync(user);
+
+            //        if (await _userManager.GetTwoFactorEnabledAsync(user))
+            //        {
+            //            var validator = await _userManager.GetValidTwoFactorProvidersAsync(user);
+
+            //            if (validator.Contains("Email"))
+            //            {
+            //                var token = await _userManager.GenerateTwoFactorTokenAsync(user, "Email");
+            //                System.IO.File.WriteAllText("email2cv.txt", token);
+
+            //                await HttpContext.SignInAsync(IdentityConstants.TwoFactorUserIdScheme, Store2FA(user.Id, "Email"));
+
+            //                return RedirectToAction("TwoFactor");
+            //            }
+            //        }
+
+            //        var principal = await _userClaimsPrincipalFactory.CreateAsync(user);
+
+            //        await HttpContext.SignInAsync(IdentityConstants.TwoFactorUserIdScheme, principal);
+            //        //var signInResult = await _signInManager.PasswordSignInAsync(model.UserName, model.Password, false, false);
+
+            //        //if (signInResult.Succeeded)
+            //        //{
+            //        return RedirectToAction("Index", "Home");
+            //        //}
+            //    }
+
+            //    await _userManager.AccessFailedAsync(user);
+
+            //    if (await _userManager.IsLockedOutAsync(user))
+            //    {
+            //        // Email deve ser enviado sugerindo a troca de senha
+            //    }
+            //}
+
+            //ModelState.AddModelError("", "Usuário ou Senha Inválida");
+            ////}
+
+            //return View();
         }
 
-        public async Task<IActionResult> Register()
+        [HttpGet]
+        public IActionResult Register()
         {
             return View();
         }
@@ -105,39 +142,27 @@ namespace WebApp.Identity.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = await _userManager.FindByEmailAsync(model.Email);
-
-                if (user == null)
+                var user = new User()
                 {
-                    user = new User()
+                    Id = Guid.NewGuid().ToString(),
+                    UserName = model.Email,
+                    Email = model.Email
+                };
+
+                var result = await _userManager.CreateAsync(user, model.Password);
+
+                if (result.Succeeded)
+                {
+                    _toastNotification.AddSuccessToastMessage("Usuário cadastrado com sucesso");
+                    return RedirectToAction("Index", "Home");
+                }
+                else
+                {
+                    foreach (var erro in result.Errors)
                     {
-                        Id = Guid.NewGuid().ToString(),
-                        UserName = model.Email,
-                        Email = model.Email
-                    };
-
-                    var result = await _userManager.CreateAsync(user, model.Password);
-
-                    if (result.Succeeded)
-                    {
-                        var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                        var confirmationEmail = Url.Action("ConfirmEmailAddress", "Login",
-                            new { token = token, email = user.Email }, Request.Scheme);
-
-                        System.IO.File.WriteAllText("confirmationEmail.txt", confirmationEmail);
-                    }
-                    else
-                    {
-                        foreach (var error in result.Errors)
-                        {
-                            ModelState.AddModelError("", error.Description);
-                        }
-
-                        return View();
+                        _toastNotification.AddErrorToastMessage($"{erro.Code}: {erro.Description}");
                     }
                 }
-
-                return View("Success");
             }
 
             return View();
@@ -170,6 +195,27 @@ namespace WebApp.Identity.Controllers
             }, IdentityConstants.TwoFactorUserIdScheme);
 
             return new ClaimsPrincipal(identity);
+        }
+
+        private void GenerateEmailConfirmation()
+        {
+            //if (result.Succeeded)
+            //{
+            //    var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            //    var confirmationEmail = Url.Action("ConfirmEmailAddress", "Login",
+            //        new { token = token, email = user.Email }, Request.Scheme);
+
+            //    System.IO.File.WriteAllText("confirmationEmail.txt", confirmationEmail);
+            //}
+            //else
+            //{
+            //    foreach (var error in result.Errors)
+            //    {
+            //        ModelState.AddModelError("", error.Description);
+            //    }
+
+            //    return View();
+            //}
         }
     }
 }

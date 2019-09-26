@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -7,6 +9,7 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using NToastNotify;
 using System;
 using System.Reflection;
 using WebApp.Identity.Configurations;
@@ -36,9 +39,39 @@ namespace WebApp.Identity
 
             services.AddMvc
             (
-                //opt => opt.Filters.Add(new AuthorizeFilter())
+                config =>
+                {
+                    var policy = new AuthorizationPolicyBuilder()
+                        .RequireAuthenticatedUser()
+                        .Build();
+                    config.Filters.Add(new AuthorizeFilter(policy));
+                }
+
             )
+            .AddNToastNotifyToastr(new ToastrOptions()
+            {
+                ProgressBar = false,
+                TimeOut = 5000,
+                PositionClass = ToastPositions.TopRight
+            })
             .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+
+            //services
+            //    .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme);
+                //.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme,
+                //    options =>
+                //    {
+                //        options.LoginPath = new PathString("/Login/Authentication/");
+                //        options.LogoutPath = new PathString();
+                //        options.AccessDeniedPath = new PathString("/Account/Forbidden/");
+                //    });
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("MemberOnly", policy => policy.RequireClaim("Member"));
+                options.AddPolicy("EmployeeId", policy => policy.RequireClaim("EmployeeId", "123", "456"));
+            });
+
 
             MigrationConfiguration(services);
 
@@ -48,13 +81,21 @@ namespace WebApp.Identity
 
             services.AddScoped<IUserClaimsPrincipalFactory<User>, UserClaimsPrincipalFactory>();
 
-            services.ConfigureApplicationCookie
-            (
-                opt => 
-                {
-                    opt.LoginPath = "/Login/Authentication/";
-                }
-            );
+            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+         .AddCookie(options =>
+         {
+             options.LoginPath = "/Account/LogIn";
+             options.LogoutPath = "/Account/LogOff";
+         });
+
+            //services.ConfigureApplicationCookie
+            //(
+            //    opt =>
+            //    {
+            //        opt.LoginPath = "/Login/Authentication";
+            //        opt.ReturnUrlParameter = "/";
+            //    }
+            //);
 
             services.Configure<SmtpSettings>(Configuration.GetSection("SmtpSettings"));
         }
@@ -72,6 +113,8 @@ namespace WebApp.Identity
 
             app.UseStaticFiles();
             app.UseCookiePolicy();
+            app.UseNToastNotify();
+            app.UseAuthentication();
 
             app.UseMvc(routes =>
             {
@@ -97,7 +140,7 @@ namespace WebApp.Identity
             services.AddIdentity<User, IdentityRole>(
                 opt =>
                 {
-                    opt.SignIn.RequireConfirmedEmail = true;
+                    opt.SignIn.RequireConfirmedEmail = false;
 
                     opt.Password.RequireDigit = false;
                     opt.Password.RequireNonAlphanumeric = false;
@@ -105,7 +148,7 @@ namespace WebApp.Identity
                     opt.Password.RequireUppercase = false;
                     opt.Password.RequiredLength = 4;
 
-                    opt.Lockout.AllowedForNewUsers = true;
+                    opt.Lockout.AllowedForNewUsers = false;
                     opt.Lockout.MaxFailedAccessAttempts = 3;
                 }
             )
@@ -119,7 +162,7 @@ namespace WebApp.Identity
             services.Configure<DataProtectionTokenProviderOptions>
             (
                 opt =>
-                    opt.TokenLifespan = TimeSpan.FromHours(3)
+                    opt.TokenLifespan = TimeSpan.FromMinutes(15)
             );
         }
     }

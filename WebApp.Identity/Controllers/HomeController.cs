@@ -14,13 +14,14 @@ namespace WebApp.Identity.Controllers
 {
     public class HomeController : Controller
     {
-        private SmtpSettings SmtpSettings { get; set; }
+        //private SmtpSettings SmtpSettings { get; set; }
 
-        public HomeController(IOptions<SmtpSettings> settings)
+        public HomeController(/*IOptions<SmtpSettings> settings*/)
         {
-            SmtpSettings = settings.Value;
+            //SmtpSettings = settings.Value;
         }
 
+        [Authorize(Policy = "EmployeeId")]
         public IActionResult Index()
         {
             return View();
@@ -29,7 +30,7 @@ namespace WebApp.Identity.Controllers
         //[Authorize]
         public IActionResult Privacy()
         {
-            MessageHelper.SendMail(SmtpSettings);
+            //MessageHelper.SendMail(SmtpSettings);
 
             return View();
         }

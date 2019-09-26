@@ -1,8 +1,9 @@
 ﻿@model WebApp.Identity.Models.LoginModel
+@await Component.InvokeAsync("NToastNotify")
 
-@{
-    ViewData["Title"] = "Login";
-}
+@*@{
+        ViewData["Title"] = "Login";
+    }*@
 
 <h1>Login</h1>
 
@@ -13,9 +14,9 @@
         <form asp-action="Login">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-                <label asp-for="UserName" class="control-label"></label>
-                <input asp-for="UserName" class="form-control" />
-                <span asp-validation-for="UserName" class="text-danger"></span>
+                <label asp-for="Email" class="control-label"></label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Password" class="control-label"></label>
@@ -28,7 +29,7 @@
             <hr class="border-danger" />
             <div class="form-group">
                 <input type="submit" value="Esqueci minha senha" class="btn btn-danger btn-block" />
-                <button class="btn btn-info btn-block" asp-area="" asp-controller="Login" asp-action="Register">Cadastre-se</button>
+                <a href="/Login/Register" class="btn btn-info btn-block">Cadastre-se</a>
             </div>
         </form>
     </div>

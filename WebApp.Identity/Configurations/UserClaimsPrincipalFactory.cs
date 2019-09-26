@@ -16,6 +16,8 @@ namespace WebApp.Identity.Configurations
         {
             var identity = await base.GenerateClaimsAsync(user);
             identity.AddClaim(new Claim("Member", user.Member));
+            identity.AddClaim(new Claim(ClaimTypes.Role, "Administrador"));
+            identity.AddClaim(new Claim("EmployeeId", "123", ClaimValueTypes.String));
 
             return identity;
         }
