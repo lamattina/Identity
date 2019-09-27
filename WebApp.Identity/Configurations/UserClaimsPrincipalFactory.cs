@@ -15,9 +15,9 @@ namespace WebApp.Identity.Configurations
         protected async override Task<ClaimsIdentity> GenerateClaimsAsync(User user)
         {
             var identity = await base.GenerateClaimsAsync(user);
-            identity.AddClaim(new Claim("Member", user.Member));
-            identity.AddClaim(new Claim(ClaimTypes.Role, "Administrador"));
             identity.AddClaim(new Claim("EmployeeId", "123", ClaimValueTypes.String));
+            identity.AddClaim(new Claim("Administrator", "Administrador"));
+            identity.AddClaim(new Claim("Member", user.Member.ToString(), ClaimValueTypes.String));
 
             return identity;
         }

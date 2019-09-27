@@ -16,6 +16,7 @@ using WebApp.Identity.Configurations;
 using WebApp.Identity.Entities;
 using WebApp.Identity.Helpers;
 using WebApp.Identity.Persistences.Contexts;
+using WebApp.Identity.Policies;
 
 namespace WebApp.Identity
 {
@@ -36,6 +37,33 @@ namespace WebApp.Identity
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
+            services.AddAuthorization(options =>
+            {
+                //options.AddPolicy("MemberOnly", policy => policy.RequireClaim("Member"));
+                options.AddPolicy("EmployeeId", policy => policy.RequireClaim("EmployeeId", "123", "456"));
+                options.AddPolicy("Administrator", policy => policy.RequireClaim("Administrator", "Administrator", "Administrator"));
+                options.AddPolicy("MicrosoftMember", policy => policy.RequireClaim("MicrosoftMember", "Microsoft", "Microsoft"));
+                options.AddPolicy("Member", policy => policy.RequireClaim("Member", "Microsoft", "Microsoft"));
+                //options.AddPolicy("MicrosoftMember", policy => policy.AddRequirements(new MemberRequirement("Microsoft")));
+            });
+
+            MigrationConfiguration(services);
+
+            PasswordConfiguration(services);
+
+            TokenConfiguration(services);
+
+            services.AddScoped<IUserClaimsPrincipalFactory<User>, UserClaimsPrincipalFactory>();
+
+            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+            .AddCookie(options =>
+                {
+                    options.LoginPath = "/Account/LogIn";
+                    options.LogoutPath = "/Account/LogOff";
+                });
+
+
+            services.Configure<SmtpSettings>(Configuration.GetSection("SmtpSettings"));
 
             services.AddMvc
             (
@@ -55,49 +83,6 @@ namespace WebApp.Identity
                 PositionClass = ToastPositions.TopRight
             })
             .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
-
-            //services
-            //    .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme);
-                //.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme,
-                //    options =>
-                //    {
-                //        options.LoginPath = new PathString("/Login/Authentication/");
-                //        options.LogoutPath = new PathString();
-                //        options.AccessDeniedPath = new PathString("/Account/Forbidden/");
-                //    });
-
-            services.AddAuthorization(options =>
-            {
-                options.AddPolicy("MemberOnly", policy => policy.RequireClaim("Member"));
-                options.AddPolicy("EmployeeId", policy => policy.RequireClaim("EmployeeId", "123", "456"));
-            });
-
-
-            MigrationConfiguration(services);
-
-            PasswordConfiguration(services);
-
-            TokenConfiguration(services);
-
-            services.AddScoped<IUserClaimsPrincipalFactory<User>, UserClaimsPrincipalFactory>();
-
-            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-         .AddCookie(options =>
-         {
-             options.LoginPath = "/Account/LogIn";
-             options.LogoutPath = "/Account/LogOff";
-         });
-
-            //services.ConfigureApplicationCookie
-            //(
-            //    opt =>
-            //    {
-            //        opt.LoginPath = "/Login/Authentication";
-            //        opt.ReturnUrlParameter = "/";
-            //    }
-            //);
-
-            services.Configure<SmtpSettings>(Configuration.GetSection("SmtpSettings"));
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)

@@ -10,8 +10,8 @@ using WebApp.Identity.Persistences.Contexts;
 namespace WebApp.Identity.Migrations
 {
     [DbContext(typeof(MyDbContext))]
-    [Migration("20190917194522_Ver_01")]
-    partial class Ver_01
+    [Migration("20190927010530_Ver01_20190926_2205")]
+    partial class Ver01_20190926_2205
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -131,21 +131,6 @@ namespace WebApp.Identity.Migrations
                     b.ToTable("AspNetUserTokens");
                 });
 
-            modelBuilder.Entity("WebApp.Identity.Entities.Organization", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(50);
-
-                    b.HasKey("Id");
-
-                    b.ToTable("AspNetOrganizations","ctm");
-                });
-
             modelBuilder.Entity("WebApp.Identity.Entities.User", b =>
                 {
                     b.Property<string>("Id")
@@ -165,18 +150,13 @@ namespace WebApp.Identity.Migrations
 
                     b.Property<DateTimeOffset?>("LockoutEnd");
 
-                    b.Property<string>("Member")
-                        .HasMaxLength(50);
+                    b.Property<int>("Member");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256);
 
                     b.Property<string>("NormalizedUserName")
                         .HasMaxLength(256);
-
-                    b.Property<int?>("OrganizationId");
-
-                    b.Property<int?>("OrganizationId1");
 
                     b.Property<string>("PasswordHash");
 
@@ -200,10 +180,6 @@ namespace WebApp.Identity.Migrations
                         .IsUnique()
                         .HasName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
-
-                    b.HasIndex("OrganizationId");
-
-                    b.HasIndex("OrganizationId1");
 
                     b.ToTable("AspNetUsers");
                 });
@@ -251,17 +227,6 @@ namespace WebApp.Identity.Migrations
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade);
-                });
-
-            modelBuilder.Entity("WebApp.Identity.Entities.User", b =>
-                {
-                    b.HasOne("WebApp.Identity.Entities.Organization")
-                        .WithMany()
-                        .HasForeignKey("OrganizationId");
-
-                    b.HasOne("WebApp.Identity.Entities.Organization", "Organization")
-                        .WithMany()
-                        .HasForeignKey("OrganizationId1");
                 });
 #pragma warning restore 612, 618
         }

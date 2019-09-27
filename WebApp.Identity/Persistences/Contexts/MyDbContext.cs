@@ -14,21 +14,6 @@ namespace WebApp.Identity.Persistences.Contexts
             base.OnModelCreating(builder);
 
             builder.ApplyConfiguration(new UserMap());
-            builder.ApplyConfiguration(new OrganizationMap());
-
-            //base.OnModelCreating(builder);
-
-            //builder.Entity<Organization>(org =>
-            //{
-            //    org.ToTable("Organizations");
-            //    org.HasKey(x => x.Id);
-
-            //    org.HasMany<User>()
-            //        .WithOne()
-            //        .HasForeignKey(x => x.OrganizationId)
-            //        .IsRequired(false);
-            //}
-            //);
         }
     }
 }

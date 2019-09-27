@@ -8,8 +8,7 @@ namespace WebApp.Identity.Persistences.Mappings
     {
         public void Configure(EntityTypeBuilder<User> builder)
         {
-            builder.Property(x => x.OrganizationId);
-            builder.Property(x => x.Member).HasMaxLength(50);
+            builder.Property(x => x.Member);
         }
     }
 }

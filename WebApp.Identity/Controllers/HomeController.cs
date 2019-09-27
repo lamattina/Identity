@@ -21,7 +21,7 @@ namespace WebApp.Identity.Controllers
             //SmtpSettings = settings.Value;
         }
 
-        [Authorize(Policy = "EmployeeId")]
+        [Authorize(Policy = "Member")]
         public IActionResult Index()
         {
             return View();
