@@ -4,6 +4,9 @@ namespace WebApp.Identity.Models
 {
     public class RegisterModel
     {
+        [Required]
+        [MinLength(3), MaxLength(100)]
+        public string Name { get; set; }
         [EmailAddress(ErrorMessage = "Digite um e-mail válido")]
         public string Email { get; set; }
         [DataType(DataType.Password)]

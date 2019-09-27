@@ -5,6 +5,8 @@ namespace WebApp.Identity.Entities
 {
     public class User : IdentityUser
     {
-        public EMember Member { get; set; } = EMember.Microsoft;
+        public string Name { get; set; }
+        public string NormalizedName { get { return Name.ToUpper(); } private set { Name.ToUpper(); } }
+        public EMember Member { get; set; } = EMember.Google;
     }
 }

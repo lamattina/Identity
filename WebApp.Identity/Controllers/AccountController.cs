@@ -115,6 +115,7 @@ namespace WebApp.Identity.Controllers
                 var user = new User()
                 {
                     Id = Guid.NewGuid().ToString(),
+                    Name = model.Name,
                     UserName = model.Email,
                     Email = model.Email
                 };
