@@ -151,12 +151,14 @@ namespace WebApp.Identity.Migrations
                     b.Property<int>("Member");
 
                     b.Property<string>("Name")
+                        .HasColumnName("Name")
                         .HasMaxLength(100);
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256);
 
                     b.Property<string>("NormalizedName")
+                        .HasColumnName("NormalizedName")
                         .HasMaxLength(100);
 
                     b.Property<string>("NormalizedUserName")

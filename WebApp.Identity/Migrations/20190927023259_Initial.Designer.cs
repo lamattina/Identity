@@ -10,8 +10,8 @@ using WebApp.Identity.Persistences.Contexts;
 namespace WebApp.Identity.Migrations
 {
     [DbContext(typeof(MyDbContext))]
-    [Migration("20190927021706_User_20190926_2316")]
-    partial class User_20190926_2316
+    [Migration("20190927023259_Initial")]
+    partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -153,12 +153,14 @@ namespace WebApp.Identity.Migrations
                     b.Property<int>("Member");
 
                     b.Property<string>("Name")
+                        .HasColumnName("Name")
                         .HasMaxLength(100);
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256);
 
                     b.Property<string>("NormalizedName")
+                        .HasColumnName("NormalizedName")
                         .HasMaxLength(100);
 
                     b.Property<string>("NormalizedUserName")
