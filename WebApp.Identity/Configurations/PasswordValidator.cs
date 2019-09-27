@@ -24,9 +24,7 @@ namespace WebApp.Identity.Configurations
             return new List<string>
             {
                 "senha",
-                //"1234",
-                //"123456",
-                //"password"
+                "password"
             };
         }
     }
